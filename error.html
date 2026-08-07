@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offside — Page Not Found | Stackly Sports Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+  :root{
+    --ink:#0B120E;
+    --pitch:#132018;
+    --pitch-2:#0F1B14;
+    --card:#1A2B21;
+    --card-hi:#20362A;
+    --paper:#F4F1E6;
+    --paper-dim:#C9C6B9;
+    --volt:#C6FF3D;
+    --volt-dim:#9CD62F;
+    --flare:#FF5A3C;
+    --flare-dim:#D6482E;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  html,body{
+    height:100%;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Space Grotesk', sans-serif;
+    overflow-x:hidden;
+  }
+
+  body{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -10%, var(--pitch-2) 0%, var(--ink) 65%);
+    padding:32px 24px;
+  }
+
+  /* ---- pitch markings backdrop ---- */
+  .pitch-lines{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    opacity:.5;
+  }
+  .pitch-lines svg{width:100%;height:100%;}
+  .pitch-lines .stroke{
+    fill:none;
+    stroke:var(--paper);
+    stroke-opacity:.05;
+    stroke-width:1.5;
+  }
+  .pitch-lines .stroke-volt{
+    stroke:var(--volt);
+    stroke-opacity:.06;
+  }
+
+  .grain{
+    position:fixed;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    background-image:radial-gradient(var(--paper) .6px, transparent .6px);
+    background-size:26px 26px;
+    opacity:.03;
+  }
+
+  /* ---- layout ---- */
+  .wrap{
+    position:relative;
+    z-index:2;
+    width:100%;
+    max-width:640px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+
+  .whistle-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:28px;
+    opacity:0;
+  }
+  .whistle-row .line{
+    width:36px;height:1px;
+    background:var(--paper-dim);
+    opacity:.35;
+  }
+  .whistle-row span{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color:var(--volt-dim);
+  }
+  .whistle-icon{
+    width:18px;height:18px;
+    flex-shrink:0;
+  }
+  .whistle-icon svg{width:100%;height:100%;display:block;}
+
+  /* ---- substitution board ---- */
+  .board{
+    position:relative;
+    background:linear-gradient(180deg, var(--card-hi) 0%, var(--card) 100%);
+    border:1px solid rgba(198,255,61,.14);
+    border-radius:10px;
+    padding:26px 34px;
+    box-shadow:
+      0 40px 80px -30px rgba(0,0,0,.65),
+      inset 0 1px 0 rgba(255,255,255,.03);
+    opacity:0;
+  }
+  .board::before{
+    content:"";
+    position:absolute;
+    inset:8px;
+    border:1px dashed rgba(244,241,230,.08);
+    border-radius:6px;
+    pointer-events:none;
+  }
+  .board-label{
+    font-family:'Space Mono', monospace;
+    font-size:10px;
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+    opacity:.6;
+    margin-bottom:14px;
+  }
+
+  .digits{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  .digit{
+    font-family:'Anton', sans-serif;
+    font-size:clamp(72px, 18vw, 148px);
+    line-height:.9;
+    color:var(--volt);
+    text-shadow:
+      0 0 18px rgba(198,255,61,.55),
+      0 0 46px rgba(198,255,61,.18);
+    letter-spacing:-.01em;
+  }
+  .digit.zero{ color:var(--flare); text-shadow:0 0 18px rgba(255,90,60,.5), 0 0 46px rgba(255,90,60,.16); }
+
+  .digit-sep{
+    width:3px;
+    align-self:stretch;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(244,241,230,.12) 0px,
+      rgba(244,241,230,.12) 6px,
+      transparent 6px,
+      transparent 14px
+    );
+    margin:0 2px;
+  }
+
+  .offside-flag{
+    margin-top:22px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 16px;
+    border-radius:999px;
+    background:rgba(255,90,60,.1);
+    border:1px solid rgba(255,90,60,.35);
+  }
+  .offside-flag .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--flare);
+    box-shadow:0 0 8px var(--flare);
+  }
+  .offside-flag span{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:var(--flare);
+  }
+
+  /* ---- copy ---- */
+  h1.headline{
+    font-family:'Anton', sans-serif;
+    font-weight:400;
+    font-size:clamp(30px, 6vw, 48px);
+    letter-spacing:.01em;
+    text-transform:uppercase;
+    margin-top:34px;
+    color:var(--paper);
+    opacity:0;
+  }
+
+  p.sub{
+    margin-top:14px;
+    max-width:440px;
+    font-size:16px;
+    line-height:1.65;
+    color:var(--paper-dim);
+    opacity:0;
+  }
+  p.sub strong{
+    color:var(--paper);
+    font-weight:600;
+  }
+
+  .path-chip{
+    margin-top:18px;
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    color:var(--paper-dim);
+    background:var(--pitch-2);
+    border:1px solid rgba(244,241,230,.08);
+    padding:6px 14px;
+    border-radius:6px;
+    opacity:0;
+  }
+  .path-chip span{ color:var(--flare); }
+
+  /* ---- actions ---- */
+  .actions{
+    margin-top:38px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+    justify-content:center;
+    opacity:0;
+  }
+
+  .btn{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    padding:14px 26px;
+    border-radius:8px;
+    cursor:pointer;
+    border:1px solid transparent;
+    transition:transform .25s ease, box-shadow .25s ease, background .25s ease, border-color .25s ease;
+    text-decoration:none;
+  }
+  .btn svg{width:17px;height:17px;flex-shrink:0;}
+
+  .btn-primary{
+    background:var(--volt);
+    color:var(--ink);
+    box-shadow:0 14px 30px -12px rgba(198,255,61,.45);
+  }
+  .btn-primary:hover{
+    background:var(--volt-dim);
+    transform:translateY(-2px);
+    box-shadow:0 18px 36px -12px rgba(198,255,61,.6);
+  }
+  .btn-primary:focus-visible{
+    outline:2px solid var(--paper);
+    outline-offset:3px;
+  }
+
+  .btn-ghost{
+    background:transparent;
+    color:var(--paper);
+    border-color:rgba(244,241,230,.22);
+  }
+  .btn-ghost:hover{
+    border-color:var(--flare);
+    color:var(--flare);
+    transform:translateY(-2px);
+  }
+  .btn-ghost:focus-visible{
+    outline:2px solid var(--flare);
+    outline-offset:3px;
+  }
+
+  .btn:active{ transform:translateY(0); }
+
+  footer.foot{
+    margin-top:46px;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+    opacity:0;
+  }
+  footer.foot a{
+    color:var(--volt-dim);
+    text-decoration:none;
+    border-bottom:1px dotted rgba(156,214,47,.4);
+  }
+
+  @media (max-width:520px){
+    .board{padding:22px 18px;}
+    .digit{font-size:clamp(56px, 22vw, 96px);}
+    .actions{flex-direction:column; width:100%;}
+    .btn{width:100%; justify-content:center;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="pitch-lines" aria-hidden="true">
+    <svg viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+      <line class="stroke" x1="0" y1="500" x2="1000" y2="500"/>
+      <circle class="stroke stroke-volt" cx="500" cy="500" r="140"/>
+      <circle class="stroke" cx="500" cy="500" r="3" fill="none"/>
+      <rect class="stroke" x="0" y="330" width="120" height="340"/>
+      <rect class="stroke" x="880" y="330" width="120" height="340"/>
+      <rect class="stroke" x="1000" y="0" width="0" height="0"/>
+    </svg>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <main class="wrap">
+
+    <div class="whistle-row">
+      <span class="line" aria-hidden="true"></span>
+      <span class="whistle-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M3 8h9a5 5 0 1 1 0 10H9l-6-4V8Z" stroke="#C6FF3D" stroke-width="1.6" stroke-linejoin="round"/>
+          <circle cx="15.5" cy="13" r="1.4" fill="#C6FF3D"/>
+        </svg>
+      </span>
+      <span>Referee's Call</span>
+      <span class="line" aria-hidden="true"></span>
+    </div>
+
+    <section class="board" role="img" aria-label="Substitution board displaying error 404">
+      <div class="board-label">Stackly Sports Club — Match Board</div>
+      <div class="digits">
+        <span class="digit" data-d>4</span>
+        <span class="digit-sep" aria-hidden="true"></span>
+        <span class="digit zero" data-d>0</span>
+        <span class="digit-sep" aria-hidden="true"></span>
+        <span class="digit" data-d>4</span>
+      </div>
+      <div class="offside-flag">
+        <span class="dot" aria-hidden="true"></span>
+        <span>Flag up — page offside</span>
+      </div>
+    </section>
+
+    <h1 class="headline">That page never made the squad</h1>
+    <p class="sub">
+      The link you followed got caught <strong>offside</strong> — the page either moved,
+      was subbed out, or never existed on this pitch.
+    </p>
+    <!-- <div class="path-chip" id="pathChip">Requested: <span id="pathValue">/unknown-route</span></div> -->
+
+    <div class="actions">
+      <button class="btn btn-ghost" id="goBackBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Go Back
+      </button>
+      <a class="btn btn-primary" href="index.html">
+        Return to Home
+        <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <!-- <footer class="foot">90 minutes on the clock — extra time won't find this page &middot; <a href="contact.html">Contact support</a></footer> -->
+
+  </main>
+
+<script>
+  // show the attempted path, if any
+  try{
+    var p = window.location.pathname.split('/').pop() || window.location.pathname;
+    document.getElementById('pathValue').textContent = p || '/';
+  }catch(e){}
+
+  document.getElementById('goBackBtn').addEventListener('click', function(){
+    if(window.history.length > 1){
+      window.history.back();
+    }else{
+      window.location.href = 'index.html';
+    }
+  });
+
+  // entrance sequence
+  if (window.gsap) {
+    var tl = gsap.timeline({defaults:{ease:'power3.out'}});
+    tl.to('.whistle-row', {opacity:1, duration:.5})
+      .to('.board', {opacity:1, y:0, duration:.7}, '-=.2')
+      .from('.digit', {y:26, opacity:0, stagger:.08, duration:.6, ease:'back.out(2)'}, '-=.5')
+      .to('h1.headline', {opacity:1, y:0, duration:.6}, '-=.3')
+      .to('p.sub', {opacity:1, duration:.6}, '-=.35')
+      .to('.path-chip', {opacity:1, duration:.5}, '-=.3')
+      .to('.actions', {opacity:1, duration:.5}, '-=.3')
+      .to('footer.foot', {opacity:1, duration:.5}, '-=.25');
+
+    // subtle LED flicker loop on the digits
+    gsap.to('.digit', {
+      textShadow: '0 0 10px rgba(198,255,61,.25), 0 0 26px rgba(198,255,61,.08)',
+      duration: 1.6,
+      repeat: -1,
+      yoyo: true,
+      stagger: { each: .5, repeat: -1 },
+      ease: 'sine.inOut'
+    });
+
+    // gentle ambient float on the board
+    gsap.to('.board', {
+      y: -6,
+      duration: 3.2,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+      delay: 1.2
+    });
+  } else {
+    document.querySelectorAll('.whistle-row,.board,h1.headline,p.sub,.path-chip,.actions,footer.foot')
+      .forEach(function(el){ el.style.opacity = 1; });
+  }
+</script>
+</body>
+</html>
